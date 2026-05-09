@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+venv/
+.venv/
+
+# Generated files
+index/
+chroma_db/
+# Crawled files (timestamp + hash pattern), keep original knowledge base files
+data/raw/*_2026???????_*.txt
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env

@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生猪养殖行业分析智能体</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f5f5f5;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            background: #fff;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+        }
+        .header .logo { font-size: 24px; }
+        .header h1 { font-size: 18px; font-weight: 600; color: #333; }
+        .header .subtitle { font-size: 12px; color: #999; margin-left: 8px; }
+
+        .quick-btns {
+            background: #fff;
+            padding: 12px 24px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .quick-btn {
+            padding: 6px 14px;
+            border: 1px solid #ddd;
+            border-radius: 16px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 13px;
+            color: #555;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .quick-btn:hover { border-color: #1890ff; color: #1890ff; background: #f0f8ff; }
+        .update-btn {
+            padding: 6px 14px;
+            border: 1px solid #52c41a;
+            border-radius: 16px;
+            background: #f6ffed;
+            cursor: pointer;
+            font-size: 13px;
+            color: #389e0d;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .update-btn:hover { background: #d9f7be; border-color: #389e0d; }
+        .update-btn:disabled { background: #f5f5f5; border-color: #d9d9d9; color: #999; cursor: not-allowed; }
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 1000;
+            animation: slideDown 0.3s;
+        }
+        .toast.success { background: #f6ffed; border: 1px solid #b7eb8f; color: #389e0d; }
+        .toast.error { background: #fff2f0; border: 1px solid #ffccc7; color: #ff4d4f; }
+        @keyframes slideDown { from { opacity: 0; transform: translateX(-50%) translateY(-20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+        }
+        .chat-wrapper {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .welcome-msg {
+            text-align: center;
+            padding: 40px 0;
+        }
+        .welcome-msg .icon { font-size: 48px; margin-bottom: 16px; }
+        .welcome-msg h2 { font-size: 20px; color: #333; margin-bottom: 8px; }
+        .welcome-msg p { color: #999; font-size: 14px; line-height: 1.8; }
+
+        .message {
+            margin-bottom: 20px;
+            animation: fadeIn 0.3s;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        .message.user { text-align: right; }
+        .message.user .bubble {
+            background: #1890ff;
+            color: #fff;
+            display: inline-block;
+            max-width: 80%;
+            text-align: left;
+        }
+        .message.assistant .bubble {
+            background: #fff;
+            border: 1px solid #e8e8e8;
+            max-width: 100%;
+        }
+        .bubble {
+            padding: 14px 18px;
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.8;
+            word-break: break-word;
+        }
+        .bubble h1, .bubble h2, .bubble h3 { margin: 12px 0 8px; font-size: 16px; }
+        .bubble h2 { font-size: 15px; }
+        .bubble ul, .bubble ol { padding-left: 20px; margin: 8px 0; }
+        .bubble li { margin-bottom: 4px; }
+        .bubble table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 12px 0;
+            font-size: 13px;
+        }
+        .bubble table th, .bubble table td {
+            border: 1px solid #e0e0e0;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        .bubble table th { background: #fafafa; font-weight: 600; }
+        .bubble strong { color: #333; }
+        .bubble blockquote {
+            border-left: 3px solid #1890ff;
+            padding-left: 12px;
+            margin: 8px 0;
+            color: #666;
+        }
+
+        .sources {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #999;
+        }
+        .sources span { margin-right: 12px; }
+
+        .actions {
+            margin-top: 8px;
+            display: flex;
+            gap: 8px;
+        }
+        .action-btn {
+            padding: 4px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 12px;
+            color: #666;
+            transition: all 0.2s;
+        }
+        .action-btn:hover { border-color: #1890ff; color: #1890ff; }
+        .action-btn.copied { border-color: #52c41a; color: #52c41a; }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 8px 0;
+        }
+        .typing-indicator span {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #bbb;
+            animation: typing 1.4s infinite;
+        }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-6px); opacity: 1; }
+        }
+
+        .input-area {
+            background: #fff;
+            border-top: 1px solid #e0e0e0;
+            padding: 16px 24px;
+        }
+        .input-wrapper {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+        .input-wrapper textarea {
+            flex: 1;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: none;
+            outline: none;
+            min-height: 44px;
+            max-height: 120px;
+            line-height: 1.5;
+            transition: border-color 0.2s;
+        }
+        .input-wrapper textarea:focus { border-color: #1890ff; }
+        .send-btn {
+            width: 44px;
+            height: 44px;
+            border: none;
+            border-radius: 8px;
+            background: #1890ff;
+            color: #fff;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .send-btn:hover { background: #1677cc; }
+        .send-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+        .error-banner {
+            background: #fff2f0;
+            border: 1px solid #ffccc7;
+            color: #ff4d4f;
+            padding: 12px 20px;
+            margin: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        @media (max-width: 640px) {
+            .header { padding: 12px 16px; }
+            .header h1 { font-size: 16px; }
+            .quick-btns { padding: 8px 16px; }
+            .chat-container { padding: 16px; }
+            .input-area { padding: 12px 16px; }
+            .bubble { font-size: 13px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <span class="logo">🐷</span>
+        <h1>生猪养殖行业分析智能体</h1>
+        <span class="subtitle">2026年度</span>
+    </div>
+
+    <div class="quick-btns">
+        <button class="quick-btn" data-question="请分析2026年生猪养殖行业整体行情">📊 整体行情</button>
+        <button class="quick-btn" data-question="2026年生猪价格走势分析，包括猪粮比情况">💰 价格走势</button>
+        <button class="quick-btn" data-question="2026年生猪养殖成本分析，饲料和人工成本变化">📋 成本分析</button>
+        <button class="quick-btn" data-question="2026年养猪行业最新政策有哪些？">📜 最新政策</button>
+        <button class="quick-btn" data-question="2026年生猪产能分析，能繁母猪存栏和出栏情况">📈 产能分析</button>
+        <button class="quick-btn" data-question="请生成一份2026年生猪养殖行业综合分析报告">📄 综合报告</button>
+        <button class="update-btn" id="updateBtn" onclick="updateData()">🔄 更新数据</button>
+    </div>
+
+    <div class="chat-container" id="chatContainer">
+        <div class="chat-wrapper" id="chatWrapper">
+            <div class="welcome-msg" id="welcomeMsg">
+                <div class="icon">🐷</div>
+                <h2>欢迎使用生猪养殖行业分析智能体</h2>
+                <p>
+                    我是您的专属行业分析助手，可以帮您分析2026年生猪养殖行业的各项数据。<br>
+                    您可以直接输入问题，或点击上方的快捷按钮开始对话。<br><br>
+                    试试问：<br>
+                    "2026年生猪价格走势如何？"<br>
+                    "目前养殖成本主要构成是什么？"<br>
+                    "最新的养猪补贴政策有哪些？"
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="input-area">
+        <div class="input-wrapper">
+            <textarea
+                id="userInput"
+                placeholder="请输入您的问题，例如：2026年生猪价格走势分析..."
+                rows="1"
+                onkeydown="handleKeyDown(event)"
+            ></textarea>
+            <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const chatWrapper = document.getElementById('chatWrapper');
+        const chatContainer = document.getElementById('chatContainer');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const welcomeMsg = document.getElementById('welcomeMsg');
+
+        function handleKeyDown(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function autoResize() {
+            userInput.style.height = 'auto';
+            userInput.style.height = Math.min(userInput.scrollHeight, 120) + 'px';
+        }
+        userInput.addEventListener('input', autoResize);
+
+        function removeWelcome() {
+            if (welcomeMsg) welcomeMsg.style.display = 'none';
+        }
+
+        function addMessage(role, content) {
+            removeWelcome();
+            const div = document.createElement('div');
+            div.className = `message ${role}`;
+            div.innerHTML = `<div class="bubble">${formatMarkdown(content)}</div>`;
+            chatWrapper.appendChild(div);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return div;
+        }
+
+        function addSources(sources, parentDiv) {
+            if (!sources || sources.length === 0) return;
+            const uniqueSources = sources.filter((s, i, arr) =>
+                i === arr.findIndex(t => t.source === s.source)
+            );
+            const div = document.createElement('div');
+            div.className = 'sources';
+            div.innerHTML = '📎 参考来源：' + uniqueSources.map(s =>
+                `<span>${s.source}（${s.date}）</span>`
+            ).join('');
+            parentDiv.appendChild(div);
+        }
+
+        function addActions(parentDiv, content, sources) {
+            const actions = document.createElement('div');
+            actions.className = 'actions';
+
+            const copyBtn = document.createElement('button');
+            copyBtn.className = 'action-btn';
+            copyBtn.textContent = '📋 复制';
+            copyBtn.onclick = function() {
+                let text = content;
+                if (sources && sources.length > 0) {
+                    text += '\n\n参考来源：\n' + sources.map(s => `${s.source}（${s.date}）`).join('\n');
+                }
+                navigator.clipboard.writeText(text).then(() => {
+                    copyBtn.textContent = '✅ 已复制';
+                    copyBtn.classList.add('copied');
+                    setTimeout(() => { copyBtn.textContent = '📋 复制'; copyBtn.classList.remove('copied'); }, 2000);
+                });
+            };
+
+            const downloadBtn = document.createElement('button');
+            downloadBtn.className = 'action-btn';
+            downloadBtn.textContent = '⬇ 下载';
+            downloadBtn.onclick = function() {
+                let text = content;
+                if (sources && sources.length > 0) {
+                    text += '\n\n参考来源：\n' + sources.map(s => `${s.source}（${s.date}）`).join('\n');
+                }
+                const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = '生猪养殖行业分析报告_' + new Date().toISOString().slice(0,10) + '.txt';
+                a.click();
+                URL.revokeObjectURL(url);
+            };
+
+            actions.appendChild(copyBtn);
+            actions.appendChild(downloadBtn);
+            parentDiv.appendChild(actions);
+        }
+
+        function showTyping() {
+            const div = document.createElement('div');
+            div.className = 'message assistant';
+            div.id = 'typingIndicator';
+            div.innerHTML = '<div class="bubble"><div class="typing-indicator"><span></span><span></span><span></span></div></div>';
+            chatWrapper.appendChild(div);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return div;
+        }
+
+        function removeTyping() {
+            const el = document.getElementById('typingIndicator');
+            if (el) el.remove();
+        }
+
+        function showError(text) {
+            removeTyping();
+            const div = document.createElement('div');
+            div.className = 'message assistant';
+            div.innerHTML = `<div class="bubble" style="border-color:#ffccc7;color:#ff4d4f;">❌ ${text}</div>`;
+            chatWrapper.appendChild(div);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function formatMarkdown(text) {
+            if (!text) return '';
+            let html = text
+                // escape HTML
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                // headers
+                .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+                .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+                .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+                // bold and italic
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                // tables
+                .replace(/^\|(.+)\|$/gm, (match) => {
+                    const cells = match.split('|').filter(c => c.trim());
+                    if (match.includes('---')) return '';
+                    const cellTag = match.startsWith('|') && /^\|[- ]+\|$/.test(match) ? '' :
+                        '<tr>' + cells.map(c => /^[\s:-]+$/.test(c) ? '' : `<td>${c.trim()}</td>`).join('') + '</tr>';
+                    return cellTag;
+                })
+                // inline code
+                .replace(/`([^`]+)`/g, '<code>$1</code>')
+                // blockquote
+                .replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>')
+                // horizontal rule
+                .replace(/^---$/gm, '<hr>')
+                // unordered list
+                .replace(/^- (.+)$/gm, '<li>$1</li>')
+                .replace(/^\* (.+)$/gm, '<li>$1</li>')
+                // ordered list
+                .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
+                // line breaks
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/\n/g, '<br>');
+
+            // wrap in paragraph
+            html = '<p>' + html + '</p>';
+
+            // wrap consecutive <li> in <ul>/<ol>
+            html = html.replace(/(<li>.*?<\/li>(?:<br>)?)+/g, '<ul>$&</ul>');
+            // clean up empty paragraphs
+            html = html.replace(/<p><\/p>/g, '').replace(/<p><br><\/p>/g, '');
+            // wrap table rows
+            html = html.replace(/(<tr>.*?<\/tr>)+/g, '<table>$&</table>');
+
+            return html;
+        }
+
+        async function sendMessage() {
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            removeWelcome();
+            userInput.value = '';
+            userInput.style.height = 'auto';
+            sendBtn.disabled = true;
+
+            // Show user message
+            addMessage('user', message);
+
+            // Show typing indicator
+            const typingEl = showTyping();
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: message, top_k: 5 }),
+                });
+
+                removeTyping();
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    showError(err.detail || '请求失败，请稍后重试');
+                } else {
+                    const data = await response.json();
+                    const msgDiv = addMessage('assistant', data.answer);
+                    addSources(data.sources, msgDiv);
+                    addActions(msgDiv, data.answer, data.sources);
+                }
+            } catch (e) {
+                showError('网络连接失败，请确保服务已启动：' + e.message);
+            } finally {
+                sendBtn.disabled = false;
+                userInput.focus();
+            }
+        }
+
+        // Quick buttons
+        document.querySelectorAll('.quick-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                userInput.value = btn.dataset.question;
+                sendMessage();
+            });
+        });
+
+        // Update data from web
+        async function updateData() {
+            const btn = document.getElementById('updateBtn');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = '⏳ 正在检索网络数据...';
+            removeWelcome();
+
+            // Show a status message in chat
+            const statusDiv = addMessage('assistant', '⏳ 正在从网络检索最新的生猪养殖行业数据，请稍候...');
+            // Hide sources for status messages
+            const sourcesEl = statusDiv.querySelector('.sources');
+            if (sourcesEl) sourcesEl.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/update-data', { method: 'POST' });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || '更新失败');
+                }
+
+                const crawl = data.crawl;
+                let resultText = '### 🔄 数据更新完成\n\n';
+                resultText += `- 成功抓取：**${crawl.success}** 个  |  新增报告：**${crawl.articles_saved}** 篇  |  知识库条目：**${data.chunks_indexed}** 条\n`;
+
+                // Build HTML table with Chinese names
+                let tableHtml = '<table style="margin-top:12px;"><tr><th>数据源</th><th>状态</th><th>详情</th></tr>';
+                crawl.details.forEach(d => {
+                    let statusText, statusColor;
+                    if (d.status === 'success') {
+                        statusText = '✅ 已更新';
+                        statusColor = '#52c41a';
+                    } else if (d.status === 'skipped') {
+                        statusText = '⏭️ 已存在';
+                        statusColor = '#faad14';
+                    } else {
+                        statusText = '❌ 失败';
+                        statusColor = '#ff4d4f';
+                    }
+                    const detailText = d.status === 'success' ? '数据已导入知识库'
+                        : d.status === 'skipped' ? '内容与已有数据重复'
+                        : (d.error || '未知错误');
+                    tableHtml += `<tr><td><strong>${d.display_name || d.name}</strong></td><td style="color:${statusColor}">${statusText}</td><td style="font-size:12px;color:#999">${detailText}</td></tr>`;
+                });
+                tableHtml += '</table>';
+
+                statusDiv.querySelector('.bubble').innerHTML = formatMarkdown(resultText) + tableHtml;
+
+                // Show toast
+                showToast(`✅ 已更新 ${crawl.articles_saved} 篇行业报告`, 'success');
+
+            } catch (e) {
+                statusDiv.querySelector('.bubble').innerHTML = formatMarkdown(`### ❌ 更新失败\n\n${e.message}\n\n请检查网络连接后重试。`);
+                showToast('❌ ' + e.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        }
+
+        function showToast(message, type) {
+            const existing = document.querySelector('.toast');
+            if (existing) existing.remove();
+
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        // Focus input on load
+        userInput.focus();
+    </script>
+</body>
+</html>

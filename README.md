@@ -2,7 +2,7 @@
 
 ## 通过github启动
 
-1. 打开本仓库的 GitHub 页面 https://github.com/l-ieru/pig-farming-analysis-agent
+1. 打开本仓库的 GitHub 页面 https://github.com/l-ieru/analysis_agent_pig
 2. 点击绿色的 **「Code」** 按钮 → 切换至 **「Codespaces」** 标签
 3. 点击 **「Create codespace on master」**
 4. 页面加载完毕后，在 VS Code Web 终端中输入：

@@ -11,7 +11,7 @@
 export DEEPSEEK_API_KEY="sk-your-key-here"
 python run.py
 ```
-（apikey可使用：sk-d378fcde83504c3f91b68c7eb7c86af6）
+（apikey可使用：）
 5. 打开 http://0.0.0.0:8000
 
 
@@ -20,7 +20,7 @@ python run.py
 | 依赖 | 版本要求 |
 |------|----------|
 | Python | 3.10+ |
-| DeepSeek API Key | 可使用：sk-d378fcde83504c3f91b68c7eb7c86af6 |
+| DeepSeek API Key | 可使用：|
 
 1. 双击项目根目录下的 `setup.bat`，自动完成依赖安装和知识库初始化
 2. 按提示设置 `DEEPSEEK_API_KEY` 环境变量并手动启动服务（见下方第三步）
